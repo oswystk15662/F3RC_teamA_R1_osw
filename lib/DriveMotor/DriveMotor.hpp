@@ -50,7 +50,6 @@ class DriveMotor{
         float _s2[4] = 0;
 
     private:
-        uint8_t msgs[21];
         
         void rotateTowardTargetAccDcc(); //target[mm] に向かって動く
         Ticker movementTicker;
