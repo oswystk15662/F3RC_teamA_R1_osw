@@ -4,7 +4,7 @@ class CANCommunication{
 public:
         CANCommunication(PinName rd, PinName td, int hz);
 
-        float getAmmount(uint8_t MotorNumber);
+        float getAmount(uint8_t MotorNumber);
 
         //前進がtheta = 0; asin(r)で角度出して、その角度に比例した速度にする。
         void readController(float* jr, float* jtheta, uint8_t* jb);
