@@ -12,7 +12,7 @@ float CANCommunication::getAmmount(uint8_t MotorNumber){
     
     float ammount;
     ammount = MMPP * encoder_data[MotorNumber][1] * (encoder_data[MotorNumber][2] << 8 +  encoder_data[MotorNumber][2]);
-    encoder_data[i][0] == 0 ? * ammount *= -1 : ;
+    encoder_data[MotorNumber][0] == 0 ? * ammount *= -1 : ;
     
     return ammount;
 }
