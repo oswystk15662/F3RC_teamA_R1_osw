@@ -6,7 +6,7 @@ CANCommunication::SerialCommunication(PinName rd, PinName td, int hz)::can(rd, t
     &ctrler_data[0] = &msgs + 16;
 }
 
-void CANCommunication::attach_caller(){
+void CANCommunication::read_msgs(){
     can.read(CANMessage(CAN_ID, &msgs, 21));
 }
 
