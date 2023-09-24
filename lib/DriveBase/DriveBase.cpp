@@ -15,14 +15,28 @@ inline bool limit_filter(float* value, float minValue, float maxValue){
 }
 
 //初期化
-DriveBase::DriveBase(   uint8_t _msgs[21],
+DriveBase::DriveBase(   CANCommunication _can,
+                        DriveMotor* motor_0, DriveMotor* motor_1, DriveMotor* motor_2, DriveMotor* motor_3,)
+                        :   can(&_can),
+                            pidController(SPEED_ADJUSTMENT_FREQUENCY, DRIVEBASE_KP, DRIVEBASE_KI, DRIVEBASE_KD),
+                            pidRotateController(SPEED_ADJUSTMENT_FREQUENCY, DRIVEBASE_ROTATE_KP, DRIVEBASE_ROTATE_KI, DRIVEBASE_ROTATE_KD)
+{
+    motors[0] = motor_0;
+    motors[1] = motor_1;
+    motors[2] = motor_2;
+    motors[3] = motor_3;
+
+    moving = false;
+    loop = [this] {return;};
+}
+
+DriveBase::DriveBase(   CANCommunication _can,
                         DriveMotor* motor_0, DriveMotor* motor_1, DriveMotor* motor_2, DriveMotor* motor_3,
                         float kp_1, float ki_1, float kd_1, float kp_2, float ki_2, float kd_2)
-                        : pidController(SPEED_ADJUSTMENT_FREQUENCY, kp_1, ki_1, kd_1),
-                          pidRotateController(SPEED_ADJUSTMENT_FREQUENCY, kp_2, ki_2, kd_2)
+                        :   can(&_can),
+                            pidController(SPEED_ADJUSTMENT_FREQUENCY, kp_1, ki_1, kd_1),
+                            pidRotateController(SPEED_ADJUSTMENT_FREQUENCY, kp_2, ki_2, kd_2)
 {
-    &msgs[0] = &_msgs[0];
-
     motors[0] = motor_0;
     motors[1] = motor_1;
     motors[2] = motor_2;

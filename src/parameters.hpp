@@ -2,10 +2,10 @@
 
 #pragma once
 
+#include <mbed.h>
 #include "settings.hpp"
 
 //定数
-#define PI (3.141592653589793)
 #define SQRT2 (1.414213562373095)
 
 //固定値

@@ -8,7 +8,11 @@ using namespace std;
 
 class DriveBase{
     public:
-        DriveBase(  DriveMotor* motor_0, DriveMotor* motor_1, DriveMotor* motor_2, DriveMotor* motor_3,
+        DriveBase(CANCommunication _can,
+                    DriveMotor* motor_0, DriveMotor* motor_1, DriveMotor* motor_2, DriveMotor* motor_3,);
+                    
+        DriveBase(  CANCommunication _can,
+                    DriveMotor* motor_0, DriveMotor* motor_1, DriveMotor* motor_2, DriveMotor* motor_3,
                     float kp_1=DRIVEBASE_KP, float ki_1=DRIVEBASE_KI, float kd_1=DRIVEBASE_KD,
                     float kp_2=DRIVEBASE_ROTATE_KP, float ki_2=DRIVEBASE_ROTATE_KI, float kd_2=DRIVEBASE_ROTATE_KD);
 
@@ -37,7 +41,7 @@ class DriveBase{
         float lastTargetSpeedD = 0.0f;
 
     private:
-        uint8_t msgs[21];
+        CANCommunication can;
 
         DriveMotor* motors[4];
 

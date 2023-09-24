@@ -1,21 +1,21 @@
 #include <math.h>
-#include "DriveMotors.hpp"
+#include "DriveMotor.hpp"
 
 
 //#include <iostream>
 //using namespace std::chrono;
 
 //初期化
-DriveMotor::DriveMotor( uint8_t _msgs[21], uint8_t MoNum,
+DriveMotor::DriveMotor( CANCommunication _can, uint8_t MoNum,
                         PinName pwm_pin, PinName dir_pin,
                         float kp_1, float ki_1, float kd_1,
                         float kp_2, float ki_2, float kd_2, bool sign) :
+                        can(_can),
                         pwmOut(pwm_pin), dirOut(dir_pin),
                         pidController(SPEED_ADJUSTMENT_FREQUENCY,kp_1,ki_1,kd_1),
                         pidSpeedController(SPEED_ADJUSTMENT_FREQUENCY,kp_2,ki_2,kd_2),
                         sign(sign)
 {
-    &msgs[0] = &_msgs[0];
     pwmOut.period_ms(1000 / MOTOR_CTRL_FREQUENCY);
     pidController.reset();
     pidSpeedController.reset(); // oswADD

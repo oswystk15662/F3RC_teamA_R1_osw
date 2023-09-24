@@ -1,6 +1,7 @@
 #pragma once
 
 #include "settings.hpp"
+#include "parameters.hpp"
 #include "CANCommunication.hpp"
 #include "PIDcontroller.hpp"
 #include <functional>
@@ -32,7 +33,7 @@ class DriveMotor{
         bool sign;
 
 
-        DriveMotor( uint8_t _msgs[21],  uint8_t MoNum,
+        DriveMotor( CANCommunication _can,  uint8_t MoNum,
                     PinName pwm_pin, PinName dir_pin,
                     float kp_1, float ki_1, float kd_1,
                     float kp_2, float ki_2, float kd_2, bool sign=1);
@@ -46,11 +47,13 @@ class DriveMotor{
 
         float pwm = 0.0f;
 
-        float _s1[4] = 0;
-        float _s2[4] = 0;
+        float _s1 = 0;
+        float _s2 = 0;
 
     private:
         
+        CANCommunication can;
+
         void rotateTowardTargetAccDcc(); //target[mm] に向かって動く
         Ticker movementTicker;
         function<void(void)> loop;
