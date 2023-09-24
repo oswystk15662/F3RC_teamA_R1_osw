@@ -9,7 +9,7 @@ using namespace std;
 class DriveBase{
     public:
         DriveBase(CANCommunication _can,
-                    DriveMotor* motor_0, DriveMotor* motor_1, DriveMotor* motor_2, DriveMotor* motor_3,);
+                    DriveMotor* motor_0, DriveMotor* motor_1, DriveMotor* motor_2, DriveMotor* motor_3);
                     
         DriveBase(  CANCommunication _can,
                     DriveMotor* motor_0, DriveMotor* motor_1, DriveMotor* motor_2, DriveMotor* motor_3,
