@@ -6,52 +6,55 @@
 
 using namespace std;
 
+struct Motors_ptr
+{
+    DriveMotor* motor0;
+    DriveMotor* motor1;
+    DriveMotor* motor2;
+    DriveMotor* motor3;
+};
+
 class DriveBase{
-    public:
-        DriveBase(CANCommunication _can,
-                    DriveMotor* motor_0, DriveMotor* motor_1, DriveMotor* motor_2, DriveMotor* motor_3);
-                    
-        DriveBase(  CANCommunication _can,
-                    DriveMotor* motor_0, DriveMotor* motor_1, DriveMotor* motor_2, DriveMotor* motor_3,
-                    float kp_1=DRIVEBASE_KP, float ki_1=DRIVEBASE_KI, float kd_1=DRIVEBASE_KD,
-                    float kp_2=DRIVEBASE_ROTATE_KP, float ki_2=DRIVEBASE_ROTATE_KI, float kd_2=DRIVEBASE_ROTATE_KD);
+public:
+    DriveBase(  CANCommunication _can, Motors_ptr ms_ptr);
+                
+    DriveBase(  CANCommunication _can, Motors_ptr ms_ptr, Gains _k1,  Gains _k2);
 
-        //各モーターに回転速度を割り当てる
-        void AssignSpeed(uint8_t _msgs[21]);
+    //各モーターに回転速度を割り当てる
+    void AssignSpeed();
 
-        //移動の停止
-        void stopMovement(bool stop=true);
+    //移動の停止
+    void stopMovement(bool stop=true);
 
-        // 速度に対して移動。元はpublicのメンバ関数で呼ばれるものだった。
-        void go(float targetSpeedX, float targetSpeedY, float targetSpeedD, bool absolute=true);
+    // 速度に対して移動。
+    void go(float targetSpeedX, float targetSpeedY, float targetSpeedD, bool absolute=true);
 
-        void resetPID();
-        
-        //デバッグ用
-        void runNoEncoder(float pwmX, float pwmY, float dir, float pwmD, float time);
+    void resetPID();
+    
+    //デバッグ用
+    void runNoEncoder(float pwmX, float pwmY, float dir, float pwmD, float time);
 
+    bool moving = false;
 
-        bool moving = false;
+    int _s1;
+    int _s2;
 
-        int _s1;
-        int _s2;
+    float lastTargetSpeedX = 0.0f;
+    float lastTargetSpeedY = 0.0f;
+    float lastTargetSpeedD = 0.0f;
 
-        float lastTargetSpeedX = 0.0f;
-        float lastTargetSpeedY = 0.0f;
-        float lastTargetSpeedD = 0.0f;
+private:
+    CANCommunication can;
 
-    private:
-        CANCommunication can;
+    DriveMotor* motors[4];
 
-        DriveMotor* motors[4];
+    PIDController pidController;
+    PIDController pidRotateController;
 
-        PIDController pidController;
-        PIDController pidRotateController;
+    float targetSpeed_R, last_targetSpeed_R;
 
-        float targetSpeed_R, last_targetSpeed_R;
+    Ticker movementTicker;
+    Timer timer;
 
-        Ticker movementTicker;
-        Timer timer;
-
-        function<void(void)> loop;
+    function<void(void)> loop;
 };

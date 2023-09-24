@@ -4,7 +4,8 @@
 
 class CANCommunication{
 public:
-    CAN can;
+    RawCAN can;
+    //CANCommunication(CANCommunication _can);
     CANCommunication(PinName rd, PinName td, int hz);
 
     float getAmount(uint8_t MotorNumber);

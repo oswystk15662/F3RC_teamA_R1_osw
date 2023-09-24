@@ -1,5 +1,3 @@
-#include <math.h>
-#include <chrono>
 #include "DriveBase.hpp"
 #include "parameters.hpp"
 //#include "simpleFunctions.hpp"
@@ -15,32 +13,29 @@ inline bool limit_filter(float* value, float minValue, float maxValue){
 }
 
 //初期化
-DriveBase::DriveBase(   CANCommunication _can,
-                        DriveMotor* motor_0, DriveMotor* motor_1, DriveMotor* motor_2, DriveMotor* motor_3,)
-                        :   can(&_can),
-                            pidController(SPEED_ADJUSTMENT_FREQUENCY, DRIVEBASE_KP, DRIVEBASE_KI, DRIVEBASE_KD),
-                            pidRotateController(SPEED_ADJUSTMENT_FREQUENCY, DRIVEBASE_ROTATE_KP, DRIVEBASE_ROTATE_KI, DRIVEBASE_ROTATE_KD)
+DriveBase::DriveBase(   CANCommunication _can, Motors_ptr _m_ptr)
+                        :   can(_can),
+                            pidController(SPEED_ADJUSTMENT_FREQUENCY, {DRIVEBASE_KP, DRIVEBASE_KI, DRIVEBASE_KD}),
+                            pidRotateController(SPEED_ADJUSTMENT_FREQUENCY, {DRIVEBASE_ROTATE_KP, DRIVEBASE_ROTATE_KI, DRIVEBASE_ROTATE_KD})
 {
-    motors[0] = motor_0;
-    motors[1] = motor_1;
-    motors[2] = motor_2;
-    motors[3] = motor_3;
+    motors[0] = _m_ptr.motor0;
+    motors[1] = _m_ptr.motor1;
+    motors[2] = _m_ptr.motor2;
+    motors[3] = _m_ptr.motor3;
 
     moving = false;
     loop = [this] {return;};
 }
 
-DriveBase::DriveBase(   CANCommunication _can,
-                        DriveMotor* motor_0, DriveMotor* motor_1, DriveMotor* motor_2, DriveMotor* motor_3,
-                        float kp_1, float ki_1, float kd_1, float kp_2, float ki_2, float kd_2)
-                        :   can(&_can),
-                            pidController(SPEED_ADJUSTMENT_FREQUENCY, kp_1, ki_1, kd_1),
-                            pidRotateController(SPEED_ADJUSTMENT_FREQUENCY, kp_2, ki_2, kd_2)
+DriveBase::DriveBase(   CANCommunication _can, Motors_ptr _m_ptr, Gains _k1, Gains _k2)
+                        :   can(_can),
+                            pidController(SPEED_ADJUSTMENT_FREQUENCY, _k1),
+                            pidRotateController(SPEED_ADJUSTMENT_FREQUENCY, _k2)
 {
-    motors[0] = motor_0;
-    motors[1] = motor_1;
-    motors[2] = motor_2;
-    motors[3] = motor_3;
+    motors[0] = _m_ptr.motor0;
+    motors[1] = _m_ptr.motor1;
+    motors[2] = _m_ptr.motor2;
+    motors[3] = _m_ptr.motor3;
 
     moving = false;
     loop = [this] {return;};
@@ -60,13 +55,17 @@ void DriveBase::AssignSpeed(){
 
     can.readController(&jr, &jtheta, &jb);
 
-    (targetSpeed_R - last_targetSpeed_R) * SPEED_ADJUSTMENT_FREQUENCY  > MAX_ACCELERATION 
-        ? targetSpeed_R = MAX_ACCELERATION / SPEED_ADJUSTMENT_FREQUENCY : targetSpeed_R = MAX_SPEED * asinf(jr) * 2 / M_PI;
+    float nowAccel = (targetSpeed_R - last_targetSpeed_R) * SPEED_ADJUSTMENT_FREQUENCY;
+    if(nowAccel > MAX_ACCELERATION){
+        targetSpeed_R = MAX_ACCELERATION / SPEED_ADJUSTMENT_FREQUENCY;
+    }else{
+        targetSpeed_R = MAX_SPEED * asinf(jr) * 2 / M_PI;
+    }
 
-    motors[0]->rotate(targetSpeed_R * cos(theta + 45));
-    motors[1]->rotate(targetSpeed_R * sin(theta + 45));
-    motors[2]->rotate(targetSpeed_R * cos(theta + 45) * -1);
-    motors[3]->rotate(targetSpeed_R * sin(theta + 45) * -1);
+    motors[0]->rotate(targetSpeed_R * cos(jtheta + M_PI / 4));
+    motors[1]->rotate(targetSpeed_R * sin(jtheta + M_PI / 4));
+    motors[2]->rotate(targetSpeed_R * cos(jtheta + M_PI / 4) * -1);
+    motors[3]->rotate(targetSpeed_R * sin(jtheta + M_PI / 4) * -1);
 }
 
 //モーターの停止
@@ -74,7 +73,7 @@ void DriveBase::stopMovement(bool stop){
     movementTicker.detach();
     moving = false;
     if(stop){
-        for(int i=0;i<4;i++){
+        for(int i = 0; i < 4; i++){
             motors[i]->stop();
         }
     }
@@ -82,6 +81,7 @@ void DriveBase::stopMovement(bool stop){
 
 #if 1
 //速度を指定して移動
+/*
 void DriveBase::go(float targetSpeedX, float targetSpeedY, float targetSpeedD, bool absolute){
 
     float targetSpeedR = sqrtf(targetSpeedX*targetSpeedX + targetSpeedY*targetSpeedY);
@@ -121,13 +121,13 @@ void DriveBase::go(float targetSpeedX, float targetSpeedY, float targetSpeedD, b
         //targetSpeedX = localization.speedX + targetAccX/SPEED_ADJUSTMENT_FREQUENCY;
         //targetSpeedY = localization.speedY + targetAccY/SPEED_ADJUSTMENT_FREQUENCY;
     }
-    /*
+    
     if(targetAccD > MAX_ROTATE_ACCELERATION){
         targetSpeedD = localization.rotateSpeed + MAX_ROTATE_ACCELERATION / SPEED_ADJUSTMENT_FREQUENCY;
     }else if(targetAccD < -MAX_ROTATE_ACCELERATION){
         targetSpeedD = localization.rotateSpeed - MAX_ROTATE_ACCELERATION / SPEED_ADJUSTMENT_FREQUENCY;
     }
-    */
+    
 
     //デバッグ用
     _s1 = int(targetSpeedX);
@@ -137,7 +137,7 @@ void DriveBase::go(float targetSpeedX, float targetSpeedY, float targetSpeedD, b
     lastTargetSpeedY = targetSpeedY;
     lastTargetSpeedD = targetSpeedD;
 
-    /*
+    
     float vx, vy;
 
     if(absolute){
@@ -148,7 +148,7 @@ void DriveBase::go(float targetSpeedX, float targetSpeedY, float targetSpeedD, b
         vx = targetSpeedX;
         vy = targetSpeedY;
     }
-    */
+    
 
     //各モーターの速度
     float speeds[4]; //モーターの速度
@@ -205,5 +205,5 @@ void DriveBase::go(float targetSpeedX, float targetSpeedY, float targetSpeedD){
         motors[i]->rotate(speeds[i]);
     }
 
-}
+}*/
 #endif

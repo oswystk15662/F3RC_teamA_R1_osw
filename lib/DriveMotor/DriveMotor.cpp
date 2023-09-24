@@ -1,20 +1,14 @@
 #include <math.h>
 #include "DriveMotor.hpp"
-
-
-//#include <iostream>
-//using namespace std::chrono;
+#include "parameters.hpp"
 
 //初期化
-DriveMotor::DriveMotor( CANCommunication _can, uint8_t MoNum,
-                        PinName pwm_pin, PinName dir_pin,
-                        float kp_1, float ki_1, float kd_1,
-                        float kp_2, float ki_2, float kd_2, bool sign) :
-                        can(_can),
-                        pwmOut(pwm_pin), dirOut(dir_pin),
-                        pidController(SPEED_ADJUSTMENT_FREQUENCY,kp_1,ki_1,kd_1),
-                        pidSpeedController(SPEED_ADJUSTMENT_FREQUENCY,kp_2,ki_2,kd_2),
-                        sign(sign)
+DriveMotor::DriveMotor( CANCommunication _can, uint8_t MoNum, MDpins _mdpins,
+                        Gains _k1, Gains _k2, bool _sign) :
+                        can(_can), pwmOut(_mdpins.pwm_pin), dirOut(_mdpins.dir_pin),
+                        pidController(SPEED_ADJUSTMENT_FREQUENCY, _k1),
+                        pidSpeedController(SPEED_ADJUSTMENT_FREQUENCY, _k2),
+                        sign(_sign)
 {
     pwmOut.period_ms(1000 / MOTOR_CTRL_FREQUENCY);
     pidController.reset();
@@ -34,13 +28,30 @@ void DriveMotor::setPWM(float signed_pwm){
     }
 }
 
+void DriveMotor::slowStart(float* _target_duty){
+    float initial_target_duty = *_target_duty;
+    
+    for(float i = 0.1f; i <= 1.0f; i += 0.1f){
+        if(initial_target_duty  != *_target_duty && initial_target_duty < *_target_duty){
+            float now_target_duty = *_target_duty;
+            this->setPWM(now_target_duty * i);
+        }
+        else if(initial_target_duty  != *_target_duty && initial_target_duty > *_target_duty){
+            this->setPWM(*_target_duty);
+        }
+        else{
+            this->setPWM(initial_target_duty * i);
+        }
+        wait_us(1000 / MOTOR_CTRL_FREQUENCY * 1000);//ms単位でモーターを制御しているので
+    }
+}
+
 // 結局これしか使わん
 void DriveMotor::rotate(float targetSpeed){
-    #if ENABLE_SPEED_LIMIT
+#if ENABLE_SPEED_LIMIT
     float speed = (can.getAmount(MotorNumber) - lastEncoderAmount) * SPEED_ADJUSTMENT_FREQUENCY;
 
     _s1 = speed;
-
 
     //速度を制限する
 
@@ -77,7 +88,7 @@ void DriveMotor::rotate(float targetSpeed){
 
     lastEncoderAmount = can.getAmount(MotorNumber);
 
-    #else
+#else
     float speed = pwm/0.00035f;
 
     _s1 = (can.getAmount(MotorNumber) - lastEncoderAmount) * SPEED_ADJUSTMENT_FREQUENCY;
@@ -111,7 +122,7 @@ void DriveMotor::rotate(float targetSpeed){
 
     lastEncoderAmount = can.getAmount(MotorNumber);
 
-    #endif
+#endif
 }
 
 
@@ -165,7 +176,6 @@ void DriveMotor::rotateTo(float target_point, bool idle){
     }
 }
 
-
 void DriveMotor::rotatePermanent(float speed, bool idle){
     if(moving){
         //printf("warning: a motion requested while the motor is moving.");
@@ -193,4 +203,3 @@ void DriveMotor::rotatePermanent(float speed, bool idle){
 void DriveMotor::attachLoop(function<void(void)> loop_func){
     loop = loop_func;
 }
-
