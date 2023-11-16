@@ -3,9 +3,10 @@
 #include "parameters.hpp"
 
 //初期化
-DriveMotor::DriveMotor( CANCommunication _can, uint8_t MoNum, MDpins _mdpins,
-                        Gains _k1, Gains _k2, bool _sign) :
-                        can(_can), pwmOut(_mdpins.pwm_pin), dirOut(_mdpins.dir_pin),
+DriveMotor::DriveMotor( CANCommunication _can, uint8_t MoNum, MDpins _mdpins, Gains _k1, Gains _k2, bool _sign = 1):
+                        can(_can),
+                        pwmOut(_mdpins.pwm_pin),
+                        dirOut(_mdpins.dir_pin),
                         pidController(SPEED_ADJUSTMENT_FREQUENCY, _k1),
                         pidSpeedController(SPEED_ADJUSTMENT_FREQUENCY, _k2),
                         sign(_sign)

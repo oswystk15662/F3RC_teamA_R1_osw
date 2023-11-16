@@ -7,8 +7,6 @@
 #include "PIDcontroller.hpp"
 #include <functional>
 
-using namespace std;
-
 struct MDpins
 {
     PinName pwm_pin;

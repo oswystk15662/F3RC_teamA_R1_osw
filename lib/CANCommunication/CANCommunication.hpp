@@ -4,7 +4,7 @@
 
 class CANCommunication{
 public:
-    RawCAN can;
+    CAN can;
     //CANCommunication(CANCommunication _can);
     CANCommunication(PinName rd, PinName td, int hz);
 

@@ -1,6 +1,10 @@
 #pragma once
 
 #include <mbed.h>
+#include <chrono>
+
+using namespace std;
+using namespace chrono;
 
 constexpr int CAN_ID = 1337;
 constexpr PinName CAN_RD = PB_8;
